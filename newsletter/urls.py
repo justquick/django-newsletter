@@ -17,4 +17,18 @@ urlpatterns = patterns('newsletter.views',
         name='subscribe_detail',
     ),
 
+    url (r'^$',
+        view='subscribe_detail',
+        name='newlsetter-subscribe',
+    ),
+
+    url (r'^subscribed/$', view=direct_to_template, 
+        name='newsletter-subscribe-complete', 
+        kwargs=dict(template='newsletter/subscribe_complete.html')
+    ),
+    url (r'^unsubscribed/$', view=direct_to_template, 
+        name='newsletter-unsubscribe-complete', 
+        kwargs=dict(template='newsletter/unsubscribe_complete.html')
+    ),
+
 )

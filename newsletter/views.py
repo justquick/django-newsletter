@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.http import *
 from django.conf import settings
@@ -31,8 +31,8 @@ def generate_csv(request, model_str="newsletter.subscription", data=None):
 
 def subscribe_detail(request, form_class=SubscriptionForm, 
         template_name='newsletter/subscribe.html',  
-        success_template='newsletter/success.html', extra_context={}, 
-        model_str="newsletter.subscription"):
+        subscribe_success_url=None, unsubscribe_success_url=None,
+        extra_context={}, model_str="newsletter.subscription"):
 
     if request.POST:   
         try:
@@ -42,26 +42,12 @@ def subscribe_detail(request, form_class=SubscriptionForm,
             instance = None
         form = form_class(request.POST, instance = instance)
         if form.is_valid():
-            subscribed = form.cleaned_data["subscribed"]
-            
-            form.save()
-            if subscribed:
-                message = getattr(settings,
-                    "NEWSLETTER_OPTIN_MESSAGE", "Success! You've been added.")
-            else:
-                message = getattr(settings,
-                     "NEWSLETTER_OPTOUT_MESSAGE", 
-                     "You've been removed. Sorry to see ya go.")          
-
-            extra = {
-                'success': True,
-                'message': message,
-                'form': form_class(),
-            }
-            extra.update(extra_context)
-            
-            return render_to_response(success_template, extra, 
-                 RequestContext(request))
+            subscription = form.save()
+            if subscription.subscribed:
+                return subscribe_success_url or \
+                    redirect('newsletter-subscribe-complete')
+            return unsubscribe_success_url or \
+                redirect('newsletter-unsubscribe-complete')
     else:
         form = form_class()
     
